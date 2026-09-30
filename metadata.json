@@ -1,0 +1,7 @@
+{
+  "name": "QR Scanner & Generator",
+  "description": "A modern, fast, responsive QR Scanner and Generator with real-time camera scanning, custom code creation, history, and sharing.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
