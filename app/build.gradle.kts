@@ -1,4 +1,5 @@
 import com.google.gms.googleservices.GoogleServicesPlugin.MissingGoogleServicesStrategy
+import java.util.Properties
 
 plugins {
   alias(libs.plugins.android.application)
@@ -25,15 +26,36 @@ android {
 
   signingConfigs {
     create("release") {
-      val keystorePath = System.getenv("KEYSTORE_PATH") ?: "${rootDir}/release.keystore"
-      storeFile = file(keystorePath)
-      storePassword = System.getenv("STORE_PASSWORD") ?: "qrscanner_release_key_2026"
-      keyAlias = System.getenv("KEY_ALIAS") ?: "qrscanner_release"
-      keyPassword = System.getenv("KEY_PASSWORD") ?: "qrscanner_release_key_2026"
-      enableV1Signing = true
-      enableV2Signing = true
-      enableV3Signing = true
-      enableV4Signing = true
+      val keystorePropertiesFile = rootProject.file("keystore.properties")
+      val keystoreProperties = Properties().apply {
+        if (keystorePropertiesFile.exists()) {
+          keystorePropertiesFile.inputStream().use { load(it) }
+        }
+      }
+
+      val keystorePath = System.getenv("KEYSTORE_PATH")
+        ?: keystoreProperties.getProperty("storeFile")
+        ?: "${rootDir}/qr-scanner-release.jks"
+      val resolvedStoreFile = if (keystorePath.startsWith("/")) file(keystorePath) else rootProject.file(keystorePath)
+      val storePass = System.getenv("STORE_PASSWORD")
+        ?: keystoreProperties.getProperty("storePassword")
+      val alias = System.getenv("KEY_ALIAS")
+        ?: keystoreProperties.getProperty("keyAlias")
+        ?: "qrscanner"
+      val keyPass = System.getenv("KEY_PASSWORD")
+        ?: keystoreProperties.getProperty("keyPassword")
+        ?: storePass
+
+      if (resolvedStoreFile.exists() && !storePass.isNullOrBlank()) {
+        storeFile = resolvedStoreFile
+        storePassword = storePass
+        keyAlias = alias
+        keyPassword = keyPass
+        enableV1Signing = true
+        enableV2Signing = true
+        enableV3Signing = true
+        enableV4Signing = true
+      }
     }
     create("debugConfig") {
       storeFile = file("${rootDir}/debug.keystore")
