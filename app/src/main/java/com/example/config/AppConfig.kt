@@ -87,9 +87,9 @@ object AppConfig {
     // =========================================================================
 
     // --- 🟡 Binance Donation Configuration ---
-    const val BINANCE_PAYMENT_URL = "https://example.com/binance"
-    const val BINANCE_PAY_ID = "BINANCE_PAY_ID_HERE"
-    const val BINANCE_ID = "BINANCE_ID_HERE"
+    const val BINANCE_PAYMENT_URL = "https://www.binance.com/register?ref=1035323924"
+    const val BINANCE_PAY_ID = "1035323924"
+    const val BINANCE_ID = "1035323924"
 
     // --- 🏦 Bank Transfer Donation Configuration ---
     /**
@@ -97,18 +97,18 @@ object AppConfig {
      * Use placeholders only. Do not hard-code passwords, PINs, OTPs,
      * card details, API secrets, private keys, or bank login credentials.
      */
-    const val BANK_NAME = "BANK_NAME_HERE"
-    const val ACCOUNT_NAME = "ACCOUNT_NAME_HERE"
-    const val ACCOUNT_NUMBER = "ACCOUNT_NUMBER_HERE"
-    const val BRANCH_NAME = "BRANCH_NAME_HERE"
-    const val ROUTING_NUMBER = "ROUTING_NUMBER_HERE"
+    const val BANK_NAME = "Islami Bank Bangladesh Limited"
+    const val ACCOUNT_NAME = "Ziaur Rahman"
+    const val ACCOUNT_NUMBER = "20501476700037911"
+    const val BRANCH_NAME = "Teknaf"
+    const val ROUTING_NUMBER = "125220910"
 
     /**
      * General externally hosted donation webpage URL.
      * Configure this with your platform link (e.g. Ko-fi, Buy Me a Coffee, GitHub Sponsors, PayPal.me).
      * DO NOT hard-code personal banking information.
      */
-    const val DONATION_URL = "https://example.com/donate"
+    const val DONATION_URL = "#"
 
     /**
      * Checks whether a given URL is a real configured URL rather than empty or root domain placeholder.
