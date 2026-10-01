@@ -1,0 +1,48 @@
+name: Build Release AAB & APK for Google Play
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Android Release Bundle (.aab) and APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'gradle'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x gradlew
+
+      - name: Build Release AAB (Play Store Bundle)
+        run: ./gradlew :app:bundleRelease --stacktrace
+
+      - name: Build Release APK (Direct Install)
+        run: ./gradlew :app:assembleRelease --stacktrace
+
+      - name: Upload Release AAB (Google Play Store)
+        uses: actions/upload-artifact@v4
+        with:
+          name: google-play-bundle-aab
+          path: app/build/outputs/bundle/release/*.aab
+          retention-days: 30
+
+      - name: Upload Release APK (Installable APK)
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-installable-apk
+          path: app/build/outputs/apk/release/*.apk
+          retention-days: 30

@@ -14,6 +14,9 @@ import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.google.android.gms.ads.rewarded.RewardedAd
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.util.Date
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -42,7 +45,7 @@ object AdManager {
         private set
 
     /**
-     * Initializes Google Mobile Ads SDK once per application lifecycle.
+     * Initializes Google Mobile Ads SDK once per application lifecycle on a background thread.
      */
     fun initialize(context: Context) {
         if (isInitialized) {
@@ -50,23 +53,27 @@ object AdManager {
             return
         }
 
-        Log.d(TAG, "Initializing Google Mobile Ads SDK with App ID: ${AppConfig.ADMOB_APP_ID}")
-        MobileAds.initialize(context) { initializationStatus ->
-            isInitialized = true
-            val statusMap = initializationStatus.adapterStatusMap
-            Log.d(TAG, "Mobile Ads SDK initialization complete. Adapters count: ${statusMap.size}")
-            for ((adapterClass, adapterStatus) in statusMap) {
-                Log.d(
-                    TAG,
-                    "  -> Adapter: $adapterClass, State: ${adapterStatus.initializationState}, " +
-                        "Latency: ${adapterStatus.latency}ms, Description: ${adapterStatus.description}"
-                )
-            }
+        CoroutineScope(Dispatchers.IO).launch {
+            Log.d(TAG, "Initializing Google Mobile Ads SDK with App ID: ${AppConfig.ADMOB_APP_ID}")
+            MobileAds.initialize(context) { initializationStatus ->
+                isInitialized = true
+                val statusMap = initializationStatus.adapterStatusMap
+                Log.d(TAG, "Mobile Ads SDK initialization complete. Adapters count: ${statusMap.size}")
+                for ((adapterClass, adapterStatus) in statusMap) {
+                    Log.d(
+                        TAG,
+                        "  -> Adapter: $adapterClass, State: ${adapterStatus.initializationState}, " +
+                            "Latency: ${adapterStatus.latency}ms, Description: ${adapterStatus.description}"
+                    )
+                }
 
-            // Preload ads immediately after initialization
-            preloadAppOpenAd(context)
-            preloadInterstitialAd(context)
-            preloadRewardedAd(context)
+                // Preload ads immediately after initialization on the main thread
+                CoroutineScope(Dispatchers.Main).launch {
+                    preloadAppOpenAd(context)
+                    preloadInterstitialAd(context)
+                    preloadRewardedAd(context)
+                }
+            }
         }
     }
 
