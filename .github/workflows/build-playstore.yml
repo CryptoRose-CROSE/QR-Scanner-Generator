@@ -1,9 +1,23 @@
-name: Build Release AAB & APK for Google Play
+name: Build & Publish Release (AAB & APK)
 
 on:
   push:
     branches: [ main, master ]
+    tags:
+      - 'v*'
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release Tag (e.g. v1.0.0)'
+        required: false
+        default: 'v1.0.0'
+      release_title:
+        description: 'Release Title'
+        required: false
+        default: 'QR Scanner & Generator Pro v1.0.0'
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -33,16 +47,48 @@ jobs:
       - name: Build Release APK (Direct Install)
         run: ./gradlew :app:assembleRelease --stacktrace
 
-      - name: Upload Release AAB (Google Play Store)
+      - name: Prepare Release Artifacts
+        id: prepare_assets
+        run: |
+          mkdir -p release-dist
+          cp app/build/outputs/bundle/release/*.aab release-dist/app-release.aab
+          cp app/build/outputs/apk/release/*.apk release-dist/app-release.apk
+          
+          if [ -n "${{ github.event.inputs.release_tag }}" ]; then
+            TAG="${{ github.event.inputs.release_tag }}"
+          elif [ "${{ github.ref_type }}" = "tag" ]; then
+            TAG="${{ github.ref_name }}"
+          else
+            TAG="v1.0.0"
+          fi
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Upload Artifacts to Action Run
         uses: actions/upload-artifact@v4
         with:
-          name: google-play-bundle-aab
-          path: app/build/outputs/bundle/release/*.aab
+          name: google-play-and-installable-release
+          path: release-dist/*
           retention-days: 30
 
-      - name: Upload Release APK (Installable APK)
-        uses: actions/upload-artifact@v4
+      - name: Publish to GitHub Releases
+        uses: softprops/action-gh-release@v2
         with:
-          name: release-installable-apk
-          path: app/build/outputs/apk/release/*.apk
-          retention-days: 30
+          tag_name: ${{ steps.prepare_assets.outputs.tag }}
+          name: ${{ github.event.inputs.release_title || steps.prepare_assets.outputs.tag }}
+          body: |
+            ## 🚀 QR Scanner & Generator Pro Release
+            
+            This automated release includes production-ready signed binaries.
+            
+            ### 📦 Assets Included:
+            * **`app-release.aab`**: Google Play Store Android App Bundle (Upload directly to Google Play Console).
+            * **`app-release.apk`**: Release APK for direct installation on Android devices.
+            
+            ### 🔐 Signing Details:
+            * **Signed with**: Production Keystore (`release.keystore`)
+            * **Signature Schemes**: APK Signature Scheme v1, v2, v3, v4
+          draft: false
+          prerelease: false
+          files: |
+            release-dist/app-release.aab
+            release-dist/app-release.apk
